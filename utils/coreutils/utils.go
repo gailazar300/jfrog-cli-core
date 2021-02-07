@@ -30,6 +30,9 @@ var version string
 // Name of the agent, i.e 'jfrog-cli-go'.
 var clientAgent string
 
+const pluginsRegistryUrl = "https://releases.jfrog.io/artifactory"
+const pluginsRegistryRepo = "jfrog-cli-plugins"
+
 func init() {
 	// Initialize error handling.
 	if os.Getenv(ErrorHandling) == string(OnErrorPanic) {
@@ -314,4 +317,36 @@ func SetClientAgent(clientAgentToSet string) {
 
 func GetClientAgent() string {
 	return clientAgent
+}
+
+func GetPluginServer() string {
+	pluginServer := os.Getenv(PluginServer)
+	if pluginServer == "" {
+		pluginServer = pluginsRegistryUrl
+	}
+	return pluginServer
+}
+
+func SetPluginServer(pluginServer string) error {
+	err := os.Setenv(PluginServer, pluginServer)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetPluginRepository() string {
+	pluginServer := os.Getenv(PluginRepository)
+	if pluginServer == "" {
+		pluginServer = pluginsRegistryRepo
+	}
+	return pluginServer
+}
+
+func SetPluginRepository(pluginRepository string) error {
+	err := os.Setenv(PluginRepository, pluginRepository)
+	if err != nil {
+		return err
+	}
+	return nil
 }

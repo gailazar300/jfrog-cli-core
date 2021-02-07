@@ -21,16 +21,18 @@ const (
 	JfrogPluginsDirName      = "plugins"
 
 	// Env
-	ErrorHandling   = "JFROG_CLI_ERROR_HANDLING"
-	TempDir         = "JFROG_CLI_TEMP_DIR"
-	LogLevel        = "JFROG_CLI_LOG_LEVEL"
-	ReportUsage     = "JFROG_CLI_REPORT_USAGE"
-	HomeDir         = "JFROG_CLI_HOME_DIR"
-	DependenciesDir = "JFROG_CLI_DEPENDENCIES_DIR"
-	BuildName       = "JFROG_CLI_BUILD_NAME"
-	BuildNumber     = "JFROG_CLI_BUILD_NUMBER"
-	Project         = "JFROG_CLI_BUILD_PROJECT"
-	CI              = "CI"
+	ErrorHandling    = "JFROG_CLI_ERROR_HANDLING"
+	TempDir          = "JFROG_CLI_TEMP_DIR"
+	LogLevel         = "JFROG_CLI_LOG_LEVEL"
+	ReportUsage      = "JFROG_CLI_REPORT_USAGE"
+	HomeDir          = "JFROG_CLI_HOME_DIR"
+	DependenciesDir  = "JFROG_CLI_DEPENDENCIES_DIR"
+	BuildName        = "JFROG_CLI_BUILD_NAME"
+	BuildNumber      = "JFROG_CLI_BUILD_NUMBER"
+	Project          = "JFROG_CLI_BUILD_PROJECT"
+	CI               = "CI"
+	PluginServer     = "JFROG_CLI_PLUGINS_SERVER"
+	PluginRepository = "JFROG_CLI_PLUGINS_REPO"
 	// Deprecated:
 	JfrogHomeEnv = "JFROG_CLI_HOME"
 )
