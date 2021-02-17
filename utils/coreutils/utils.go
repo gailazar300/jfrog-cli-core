@@ -327,26 +327,10 @@ func GetPluginServer() string {
 	return pluginServer
 }
 
-func SetPluginServer(pluginServer string) error {
-	err := os.Setenv(PluginServer, pluginServer)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func GetPluginRepository() string {
 	pluginServer := os.Getenv(PluginRepository)
 	if pluginServer == "" {
 		pluginServer = pluginsRegistryRepo
 	}
 	return pluginServer
-}
-
-func SetPluginRepository(pluginRepository string) error {
-	err := os.Setenv(PluginRepository, pluginRepository)
-	if err != nil {
-		return err
-	}
-	return nil
 }
