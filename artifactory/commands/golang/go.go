@@ -3,6 +3,7 @@ package golang
 import (
 	"errors"
 	"fmt"
+	"github.com/jfrog/jfrog-client-go/utils/log"
 	"path"
 	"path/filepath"
 	"strings"
@@ -31,6 +32,7 @@ type GoCommand struct {
 	buildConfiguration *utils.BuildConfiguration
 	deployerParams     *utils.RepositoryConfig
 	resolverParams     *utils.RepositoryConfig
+	configFilePath     string
 }
 
 func NewGoCommand() *GoCommand {
@@ -67,18 +69,75 @@ func (gc *GoCommand) SetGoArg(goArg []string) *GoCommand {
 	return gc
 }
 
-func (gc *GoCommand) ServerDetails() (*config.ServerDetails, error) {
-	if gc.deployerParams != nil && !gc.deployerParams.IsServerDetailsEmpty() {
-		return gc.deployerParams.ServerDetails()
-	}
-	return gc.resolverParams.ServerDetails()
-}
-
 func (gc *GoCommand) CommandName() string {
 	return GoCommandName
 }
 
+func (gc *GoCommand) SetConfigFilePath(configFilePath string) *GoCommand {
+	gc.configFilePath = configFilePath
+	return gc
+}
+
+func (gc *GoCommand) SetArgs(args []string) *GoCommand {
+	gc.goArg = args
+	return gc
+}
+
+func (gc *GoCommand) ServerDetails() (*config.ServerDetails, error) {
+	// If deployer Artifactory details exists, returs it.
+	if gc.deployerParams != nil && !gc.deployerParams.IsServerDetailsEmpty() {
+		return gc.deployerParams.ServerDetails()
+	}
+
+	// If resolver Artifactory details exists, returs it.
+	if gc.resolverParams != nil && !gc.resolverParams.IsServerDetailsEmpty() {
+		return gc.resolverParams.ServerDetails()
+	}
+
+	// If conf file exists, return the server configured in the conf file.
+	if gc.configFilePath != "" {
+		vConfig, err := utils.ReadConfigFile(gc.configFilePath, utils.YAML)
+		if err != nil {
+			return nil, err
+		}
+		return utils.GetServerDetails(vConfig)
+	}
+	return nil, nil
+}
+
 func (gc *GoCommand) Run() error {
+	// Read config file.
+	log.Debug("Preparing to read the config file", gc.configFilePath)
+	vConfig, err := utils.ReadConfigFile(gc.configFilePath, utils.YAML)
+	if err != nil {
+		return err
+	}
+
+	// Extract resolution params.
+	gc.resolverParams, err = utils.GetRepoConfigByPrefix(gc.configFilePath, utils.ProjectConfigResolverPrefix, vConfig)
+	if err != nil {
+		return err
+	}
+
+	if vConfig.IsSet(utils.ProjectConfigDeployerPrefix) {
+		// Extract deployer params.
+		gc.deployerParams, err = utils.GetRepoConfigByPrefix(gc.configFilePath, utils.ProjectConfigDeployerPrefix, vConfig)
+		if err != nil {
+			return err
+		}
+		// Set to true for publishing dependencies.
+		gc.SetPublishDeps(true)
+	}
+
+	// Extract build info information from the args.
+	gc.goArg, gc.buildConfiguration, err = utils.ExtractBuildDetailsFromArgs(gc.goArg)
+	if err != nil {
+		return err
+	}
+	return gc.runGoCmd()
+}
+
+func (gc *GoCommand) runGoCmd() error {
 	err := golang.LogGoVersion()
 	if err != nil {
 		return err
