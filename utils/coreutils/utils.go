@@ -72,6 +72,11 @@ var ExitCodeError = ExitCode{1}
 var ExitCodeFailNoOp = ExitCode{2}
 var ExitCodeVulnerableBuild = ExitCode{3}
 
+// Release bundle details error
+var ExitCodeNotFound = ExitCode{2}
+var ExitCodeConflict = ExitCode{3}
+var ExitCodeInProgress = ExitCode{4}
+
 type CliError struct {
 	ExitCode
 	ErrorMsg string
