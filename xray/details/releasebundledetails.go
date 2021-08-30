@@ -10,7 +10,7 @@ type RbDetailsCommand struct {
 	serverDetails     *config.ServerDetails
 	params            RbDetailsParams
 	includeViolations bool
-	result            *services.BasicScanDetails
+	result            *services.RBScanDetails
 }
 
 type RbDetailsParams struct {
@@ -18,7 +18,7 @@ type RbDetailsParams struct {
 	Version string
 }
 
-func (rbDetailsCmd *RbDetailsCommand) Result() *services.BasicScanDetails {
+func (rbDetailsCmd *RbDetailsCommand) Result() *services.RBScanDetails {
 	return rbDetailsCmd.result
 }
 
