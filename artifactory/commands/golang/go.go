@@ -146,7 +146,7 @@ func (gc *GoCommand) run() error {
 	err = gocmd.Run(gc.goArg, serverDetails, gc.resolverParams.TargetRepo())
 	if err != nil {
 		return err
-	}
+	}go list -m all
 	if isCollectBuildInfo {
 		tempDirPath := ""
 		if isGoGetCommand := len(gc.goArg) > 0 && gc.goArg[0] == "get"; isGoGetCommand {
