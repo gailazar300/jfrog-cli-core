@@ -9,6 +9,7 @@ import (
 
 	buildinfo "github.com/jfrog/build-info-go/entities"
 
+	buildinfoutils "github.com/jfrog/build-info-go/utils"
 	"github.com/jfrog/jfrog-cli-core/v2/artifactory/utils"
 	"github.com/jfrog/jfrog-cli-core/v2/common/spec"
 	"github.com/jfrog/jfrog-client-go/artifactory/services"
@@ -157,7 +158,7 @@ func (dc *DownloadCommand) download() error {
 				return err
 			}
 			walkFn := createSyncDeletesWalkFunction(tmpRoot)
-			err = fileutils.Walk(dc.SyncDeletesPath(), walkFn, false)
+			err = buildinfoutils.Walk(dc.SyncDeletesPath(), walkFn, false)
 			if err != nil {
 				return errorutils.CheckError(err)
 			}
@@ -293,7 +294,7 @@ func createLegalPath(root, path string) string {
 	return path
 }
 
-func createSyncDeletesWalkFunction(tempRoot string) fileutils.WalkFunc {
+func createSyncDeletesWalkFunction(tempRoot string) buildinfoutils.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 		// Convert path to absolute path
 		path, err = filepath.Abs(path)
@@ -311,7 +312,7 @@ func createSyncDeletesWalkFunction(tempRoot string) fileutils.WalkFunc {
 			// If current path is a dir - remove all content and return SkipDir to stop walking this path
 			err = os.RemoveAll(path)
 			if err == nil {
-				return fileutils.SkipDir
+				return buildinfoutils.SkipDir
 			}
 		} else {
 			// Path is a file

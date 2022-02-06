@@ -219,7 +219,7 @@ func archive(moduleName, version, projectPath, tempDir string) (name string, zip
 		return "", nil, err
 	}
 	openedFile = false
-	fileDetails, err := fileutils.GetFileDetails(tempFile.Name(), true)
+	fileDetails, err := biutils.GetFileDetails(tempFile.Name(), true)
 	if err != nil {
 		return "", nil, err
 	}
@@ -231,7 +231,7 @@ func archive(moduleName, version, projectPath, tempDir string) (name string, zip
 
 // Add the info file also as an artifact to be part of the build info.
 func createInfoFileArtifact(infoFilePath, packageVersion string) (*buildinfo.Artifact, error) {
-	fileDetails, err := fileutils.GetFileDetails(infoFilePath, true)
+	fileDetails, err := biutils.GetFileDetails(infoFilePath, true)
 	if err != nil {
 		return nil, err
 	}

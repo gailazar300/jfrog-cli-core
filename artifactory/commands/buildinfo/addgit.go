@@ -2,6 +2,7 @@ package buildinfo
 
 import (
 	"errors"
+	utils2 "github.com/jfrog/build-info-go/utils"
 	"io"
 	"os"
 	"os/exec"
@@ -236,7 +237,7 @@ func (config *BuildAddGitCommand) DoCollect(issuesConfig *IssuesConfiguration, l
 // Creates a regexp handler to parse and fetch issues from the the output of the git log command.
 func createLogRegExpHandler(issuesConfig *IssuesConfiguration, foundIssues *[]buildinfo.AffectedIssue) (*gofrogcmd.CmdOutputPattern, error) {
 	// Create regex pattern.
-	issueRegexp, err := clientutils.GetRegExp(issuesConfig.Regexp)
+	issueRegexp, err := utils2.GetRegExp(issuesConfig.Regexp)
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +277,7 @@ func (err RevisionRangeError) Error() string {
 // Creates a regexp handler to handle the event of revision missing in the git revision range.
 func createErrRegExpHandler(lastVcsRevision string) (*gofrogcmd.CmdOutputPattern, error) {
 	// Create regex pattern.
-	invalidRangeExp, err := clientutils.GetRegExp(`fatal: Invalid revision range [a-fA-F0-9]+\.\.`)
+	invalidRangeExp, err := utils2.GetRegExp(`fatal: Invalid revision range [a-fA-F0-9]+\.\.`)
 	if err != nil {
 		return nil, err
 	}

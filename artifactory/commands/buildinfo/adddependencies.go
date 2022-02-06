@@ -2,6 +2,7 @@ package buildinfo
 
 import (
 	"errors"
+	biutils "github.com/jfrog/build-info-go/utils"
 	regxp "regexp"
 	"strconv"
 
@@ -97,18 +98,18 @@ func (badc *BuildAddDependenciesCommand) SetBuildConfiguration(buildConfiguratio
 	return badc
 }
 
-func collectDependenciesChecksums(dependenciesPaths map[string]string) (map[string]*fileutils.FileDetails, int) {
+func collectDependenciesChecksums(dependenciesPaths map[string]string) (map[string]*biutils.FileDetails, int) {
 	failures := 0
-	dependenciesDetails := make(map[string]*fileutils.FileDetails)
+	dependenciesDetails := make(map[string]*biutils.FileDetails)
 	for _, dependencyPath := range dependenciesPaths {
-		var details *fileutils.FileDetails
+		var details *biutils.FileDetails
 		var err error
 		if fileutils.IsPathSymlink(dependencyPath) {
 			log.Info("Adding symlink dependency:", dependencyPath)
 			details, err = fspatterns.CreateSymlinkFileDetails()
 		} else {
 			log.Info("Adding dependency:", dependencyPath)
-			details, err = fileutils.GetFileDetails(dependencyPath, true)
+			details, err = biutils.GetFileDetails(dependencyPath, true)
 		}
 		if err != nil {
 			log.Error(err)
@@ -121,7 +122,7 @@ func collectDependenciesChecksums(dependenciesPaths map[string]string) (map[stri
 }
 
 func (badc *BuildAddDependenciesCommand) collectLocalDependencies() (success, fail int, err error) {
-	var dependenciesDetails map[string]*fileutils.FileDetails
+	var dependenciesDetails map[string]*biutils.FileDetails
 	dependenciesPaths, errorOccurred := badc.doCollectLocalDependencies()
 	dependenciesDetails, fail = collectDependenciesChecksums(dependenciesPaths)
 	if !badc.dryRun {
@@ -297,7 +298,7 @@ func (badc *BuildAddDependenciesCommand) savePartialBuildInfo(dependencies []bui
 	return utils.SavePartialBuildInfo(buildName, buildNumber, badc.buildConfiguration.GetProject(), populateFunc)
 }
 
-func convertFileInfoToDependencies(files map[string]*fileutils.FileDetails) []buildinfo.Dependency {
+func convertFileInfoToDependencies(files map[string]*biutils.FileDetails) []buildinfo.Dependency {
 	var buildDependencies []buildinfo.Dependency
 	for filePath, fileInfo := range files {
 		dependency := buildinfo.Dependency{}

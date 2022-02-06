@@ -2,6 +2,8 @@ package dotnet
 
 import (
 	"fmt"
+	"github.com/jfrog/build-info-go/utils/dotnet"
+	"github.com/jfrog/build-info-go/utils/dotnet/solution"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -11,8 +13,6 @@ import (
 
 	"github.com/jfrog/gofrog/io"
 	"github.com/jfrog/jfrog-cli-core/v2/artifactory/utils"
-	"github.com/jfrog/jfrog-cli-core/v2/artifactory/utils/dotnet"
-	"github.com/jfrog/jfrog-cli-core/v2/artifactory/utils/dotnet/solution"
 	"github.com/jfrog/jfrog-cli-core/v2/utils/config"
 	"github.com/jfrog/jfrog-client-go/auth"
 	"github.com/jfrog/jfrog-client-go/utils/errorutils"

@@ -3,6 +3,7 @@ package python
 import (
 	"errors"
 	"fmt"
+	clientutils "github.com/jfrog/build-info-go/utils"
 	"os"
 	"strings"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/jfrog/jfrog-cli-core/v2/artifactory/utils"
 	"github.com/jfrog/jfrog-cli-core/v2/utils/config"
 	piputils "github.com/jfrog/jfrog-cli-core/v2/utils/python"
-	clientutils "github.com/jfrog/jfrog-client-go/utils"
 	"github.com/jfrog/jfrog-client-go/utils/errorutils"
 	"github.com/jfrog/jfrog-client-go/utils/log"
 )

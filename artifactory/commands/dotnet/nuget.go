@@ -1,8 +1,8 @@
 package dotnet
 
 import (
-	"github.com/jfrog/jfrog-cli-core/v2/artifactory/utils/dotnet"
-	"github.com/jfrog/jfrog-cli-core/v2/artifactory/utils/dotnet/solution"
+	"github.com/jfrog/build-info-go/utils/dotnet"
+	"github.com/jfrog/build-info-go/utils/dotnet/solution"
 	clientutils "github.com/jfrog/jfrog-client-go/utils"
 	"github.com/jfrog/jfrog-client-go/utils/errorutils"
 	"github.com/jfrog/jfrog-client-go/utils/log"

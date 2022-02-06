@@ -95,11 +95,3 @@ func CopyFile(src, dst string, fileMode os.FileMode) (err error) {
 func DoubleWinPathSeparator(filePath string) string {
 	return strings.Replace(filePath, "\\", "\\\\", -1)
 }
-
-func UnixToWinPathSeparator(filePath string) string {
-	return strings.Replace(filePath, "/", "\\\\", -1)
-}
-
-func WinToUnixPathSeparator(filePath string) string {
-	return strings.Replace(filePath, "\\", "/", -1)
-}
