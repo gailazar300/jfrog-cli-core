@@ -31,58 +31,80 @@ type PluginsV1 struct {
 
 // CheckPluginsVersionAndConvertIfNeeded In case the latest plugin's layout version isn't match to the local plugins hierarchy at '.jfrog/plugins' -
 // Migrate to the latest version.
-func CheckPluginsVersionAndConvertIfNeeded() error {
-	// Locking mechanism - two threads in the same process.
-	mutex.Lock()
-	defer mutex.Unlock()
-	// Locking mechanism - in case two process would read/migrate local files at '.jfrog/plugins'.
-	lockDirPath, err := coreutils.GetJfrogPluginsLockDir()
+func CheckPluginsVersionAndConvertIfNeeded(lockAndConvert bool) error {
+	convert, err := CheckIfNeedsToConvertPluginsVersion(false)
 	if err != nil {
 		return err
 	}
-	lockFile, err := lock.CreateLock(lockDirPath)
-	defer lockFile.Unlock()
-	if err != nil {
-		return err
-	}
-	// Check if 'plugins' directory exists in .jfrog
-	jfrogHomeDir, err := coreutils.GetJfrogHomeDir()
-	if err != nil {
-		return err
-	}
-	exists, err := fileutils.IsDirExists(filepath.Join(jfrogHomeDir, coreutils.JfrogPluginsDirName), false)
-	if err != nil {
-		return err
-	}
-	if !exists {
+	if !convert {
 		return nil
 	}
 
-	plugins, err := readPluginsConfig()
+	plugins, err := convertPluginsV0ToV1()
 	if err != nil {
 		return err
 	}
+
 	if plugins.Version != coreutils.GetPluginsConfigVersion() {
 		return errorutils.CheckError(errors.New(fmt.Sprintf("Expected plugins version in 'plugins.yaml is %d but the actual value is %d", coreutils.GetPluginsConfigVersion(), plugins.Version)))
 	}
 	return nil
 }
 
+func CheckIfNeedsToConvertPluginsVersion(lockAndConvert bool) (bool, error) {
+	if lockAndConvert {
+		// Locking mechanism - two threads in the same process.
+		mutex.Lock()
+		defer mutex.Unlock()
+		// Locking mechanism - in case two process would read/migrate local files at '.jfrog/plugins'.
+		lockDirPath, err := coreutils.GetJfrogPluginsLockDir()
+		if err != nil {
+			return false, err
+		}
+		lockFile, err := lock.CreateLock(lockDirPath)
+		defer lockFile.Unlock()
+		if err != nil {
+			return false, err
+		}
+	}
+	// Check if 'plugins' directory exists in .jfrog
+	jfrogHomeDir, err := coreutils.GetJfrogHomeDir()
+	if err != nil {
+		return false, err
+	}
+	exists, err := fileutils.IsDirExists(filepath.Join(jfrogHomeDir, coreutils.JfrogPluginsDirName), false)
+	if err != nil {
+		return false, err
+	}
+	if !exists {
+		return false, err
+	}
+	plugins, err := readPluginsConfig()
+	if err != nil {
+		return false, err
+	}
+	if plugins == nil {
+		return true, nil
+	}
+	return false, nil
+}
+
+// Reads plugins config file. In case file does not exists return nil.
 func readPluginsConfig() (*PluginsV1, error) {
 	plugins := new(PluginsV1)
 	content, err := getPluginsConfigFileContent()
 	if err != nil {
-		return nil, err
+		return plugins, err
 	}
 	if len(content) == 0 {
 		// No plugins.yaml file was found. This means that we are in v0.
 		// Convert plugins layout to the latest version.
-		return convertPluginsV0ToV1()
+		return nil, nil
 	}
 
 	err = json.Unmarshal(content, &plugins)
 	if err != nil {
-		return nil, errorutils.CheckError(err)
+		return plugins, errorutils.CheckError(err)
 	}
 	return plugins, err
 }
