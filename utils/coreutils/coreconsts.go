@@ -34,6 +34,8 @@ const (
 	JfrogTransferStateFileName          = "state.json"
 	PluginsExecDirName                  = "bin"
 	PluginsResourcesDirName             = "resources"
+	//#nosec G101
+	CurationPassThroughApi = "api/curation/audit/"
 
 	//#nosec G101
 	ErrorHandling      = "JFROG_CLI_ERROR_HANDLING"
@@ -44,6 +46,7 @@ const (
 	DependenciesDir    = "JFROG_CLI_DEPENDENCIES_DIR"
 	TransitiveDownload = "JFROG_CLI_TRANSITIVE_DOWNLOAD_EXPERIMENTAL"
 	FailNoOp           = "JFROG_CLI_FAIL_NO_OP"
+	OutputDirPathEnv   = "JFROG_CLI_COMMAND_SUMMARY_OUTPUT_DIR"
 	CI                 = "CI"
 	ServerID           = "JFROG_CLI_SERVER_ID"
 )

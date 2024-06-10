@@ -119,10 +119,7 @@ func (dc *DotnetCommand) Exec() (err error) {
 	}
 	defer func() {
 		if callbackFunc != nil {
-			e := callbackFunc()
-			if err == nil {
-				err = e
-			}
+			err = errors.Join(err, callbackFunc())
 		}
 	}()
 	if err = buildInfoModule.CalcDependencies(); err != nil {
@@ -272,10 +269,7 @@ func InitNewConfig(configDirPath, repoName string, server *config.ServerDetails,
 	}
 	log.Debug("Nuget config file created at:", configFile.Name())
 	defer func() {
-		e := configFile.Close()
-		if err == nil {
-			err = errorutils.CheckError(e)
-		}
+		err = errors.Join(err, errorutils.CheckError(configFile.Close()))
 	}()
 
 	// We would prefer to write the NuGet configuration using the `nuget add source` command,

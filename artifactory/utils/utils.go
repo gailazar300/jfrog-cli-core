@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	ioutils "github.com/jfrog/gofrog/io"
+	"github.com/jfrog/jfrog-client-go/evidence"
 	"io"
 	"net/http"
 	"net/url"
@@ -213,6 +215,27 @@ func CreateLifecycleServiceManager(serviceDetails *config.ServerDetails, isDryRu
 	return lifecycle.New(serviceConfig)
 }
 
+func CreateEvidenceServiceManager(serviceDetails *config.ServerDetails, isDryRun bool) (*evidence.EvidenceServicesManager, error) {
+	certsPath, err := coreutils.GetJfrogCertsDir()
+	if err != nil {
+		return nil, err
+	}
+	evdAuth, err := serviceDetails.CreateEvidenceAuthConfig()
+	if err != nil {
+		return nil, err
+	}
+	serviceConfig, err := clientConfig.NewConfigBuilder().
+		SetServiceDetails(evdAuth).
+		SetCertificatesPath(certsPath).
+		SetInsecureTls(serviceDetails.InsecureTls).
+		SetDryRun(isDryRun).
+		Build()
+	if err != nil {
+		return nil, err
+	}
+	return evidence.New(serviceConfig)
+}
+
 // This error indicates that the build was scanned by Xray, but Xray found issues with the build.
 // If Xray failed to scan the build, for example due to a networking issue, a regular error should be returned.
 var errBuildScan = errors.New("issues found during xray build scan")
@@ -227,11 +250,7 @@ func RemoteUnmarshal(serviceManager artifactory.ArtifactoryServicesManager, remo
 	if err != nil {
 		return
 	}
-	defer func() {
-		if localErr := ioReaderCloser.Close(); err == nil {
-			err = localErr
-		}
-	}()
+	defer ioutils.Close(ioReaderCloser, &err)
 	content, err := io.ReadAll(ioReaderCloser)
 	if err != nil {
 		return errorutils.CheckError(err)

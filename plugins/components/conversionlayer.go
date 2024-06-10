@@ -18,7 +18,7 @@ func ConvertApp(jfrogApp App) (*cli.App, error) {
 	app.Name = jfrogApp.Name
 	app.Description = jfrogApp.Description
 	app.Version = jfrogApp.Version
-	app.Commands, err = ConvertAppCommands(jfrogApp, jfrogApp.Name)
+	app.Commands, err = ConvertAppCommands(jfrogApp)
 	if err != nil {
 		return nil, err
 	}
@@ -84,6 +84,7 @@ func convertCommand(cmd Command, namespaces ...string) (cli.Command, error) {
 		Flags:           convertedFlags,
 		Aliases:         cmd.Aliases,
 		Category:        cmd.Category,
+		Usage:           cmd.Description,
 		Description:     cmd.Description,
 		HelpName:        common.CreateUsage(getCmdUsageString(cmd, namespaces...), cmd.Description, cmdUsages),
 		UsageText:       createArgumentsSummary(cmd),
@@ -127,7 +128,7 @@ func createCommandUsages(cmd Command, convertedStringFlags map[string]StringFlag
 }
 
 func getCmdUsageString(cmd Command, namespaces ...string) string {
-	return coreutils.GetCliExecutableName() + " " + strings.Join(append(removeEmptyValues(namespaces), cmd.Name), " ")
+	return strings.Join(append(removeEmptyValues(namespaces), cmd.Name), " ")
 }
 
 // Generated usages are based on the command's flags and arguments:

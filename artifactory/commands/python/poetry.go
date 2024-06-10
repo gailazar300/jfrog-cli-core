@@ -47,10 +47,7 @@ func (pc *PoetryCommand) Run() (err error) {
 	}
 	defer func() {
 		if pythonBuildInfo != nil && err != nil {
-			e := pythonBuildInfo.Clean()
-			if e != nil {
-				err = errors.New(err.Error() + "\n" + e.Error())
-			}
+			err = errors.Join(err, pythonBuildInfo.Clean())
 		}
 	}()
 	err = pc.SetPypiRepoUrlWithCredentials()
@@ -129,7 +126,7 @@ func (pc *PoetryCommand) SetCommandName(commandName string) *PoetryCommand {
 }
 
 func (pc *PoetryCommand) SetPypiRepoUrlWithCredentials() error {
-	rtUrl, username, password, err := python.GetPypiRepoUrlWithCredentials(pc.serverDetails, pc.repository)
+	rtUrl, username, password, err := python.GetPypiRepoUrlWithCredentials(pc.serverDetails, pc.repository, false)
 	if err != nil {
 		return err
 	}

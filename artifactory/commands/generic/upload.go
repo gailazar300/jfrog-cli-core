@@ -2,12 +2,13 @@ package generic
 
 import (
 	"errors"
+	"github.com/jfrog/jfrog-cli-core/v2/artifactory/commands/commandssummaries"
+	"github.com/jfrog/jfrog-cli-core/v2/commandsummary"
+	"os"
 
 	buildInfo "github.com/jfrog/build-info-go/entities"
 
-	"strconv"
-	"time"
-
+	ioutils "github.com/jfrog/gofrog/io"
 	"github.com/jfrog/jfrog-cli-core/v2/artifactory/utils"
 	"github.com/jfrog/jfrog-cli-core/v2/common/build"
 	"github.com/jfrog/jfrog-cli-core/v2/common/spec"
@@ -18,6 +19,8 @@ import (
 	ioUtils "github.com/jfrog/jfrog-client-go/utils/io"
 	"github.com/jfrog/jfrog-client-go/utils/io/content"
 	"github.com/jfrog/jfrog-client-go/utils/log"
+	"strconv"
+	"time"
 )
 
 type UploadCommand struct {
@@ -139,12 +142,7 @@ func (uc *UploadCommand) upload() (err error) {
 		}
 		if summary != nil {
 			artifactsDetailsReader = summary.ArtifactsDetailsReader
-			defer func() {
-				e := artifactsDetailsReader.Close()
-				if err == nil {
-					err = e
-				}
-			}()
+			defer ioutils.Close(artifactsDetailsReader, &err)
 			// If 'detailed summary' was requested, then the reader should not be closed here.
 			// It will be closed after it will be used to generate the summary.
 			if uc.DetailedSummary() {
@@ -158,6 +156,10 @@ func (uc *UploadCommand) upload() (err error) {
 			}
 			successCount = summary.TotalSucceeded
 			failCount = summary.TotalFailed
+
+			if err = recordCommandSummary(summary, serverDetails.Url, uc.buildConfiguration); err != nil {
+				return
+			}
 		}
 	} else {
 		successCount, failCount, err = servicesManager.UploadFiles(uploadParamsArray...)
@@ -193,6 +195,7 @@ func (uc *UploadCommand) upload() (err error) {
 		}
 		return build.PopulateBuildArtifactsAsPartials(buildArtifacts, uc.buildConfiguration, buildInfo.Generic)
 	}
+
 	return
 }
 
@@ -206,6 +209,7 @@ func getUploadParams(f *spec.File, configuration *utils.UploadConfiguration, bui
 	uploadParams.MinChecksumDeploy = configuration.MinChecksumDeploySize
 	uploadParams.MinSplitSize = configuration.MinSplitSizeMB * rtServicesUtils.SizeMiB
 	uploadParams.SplitCount = configuration.SplitCount
+	uploadParams.ChunkSize = configuration.ChunkSizeMB * rtServicesUtils.SizeMiB
 	uploadParams.AddVcsProps = addVcsProps
 	uploadParams.BuildProps = buildProps
 	uploadParams.Archive = f.Archive
@@ -263,12 +267,7 @@ func (uc *UploadCommand) handleSyncDeletes(syncDeletesProp string) (err error) {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		e := resultItems.Close()
-		if err == nil {
-			err = e
-		}
-	}()
+	defer ioutils.Close(resultItems, &err)
 	_, err = servicesManager.DeleteFiles(resultItems)
 	return err
 }
@@ -279,4 +278,40 @@ func createDeleteSpecForSync(deletePattern string, syncDeletesProp string) *spec
 		ExcludeProps(syncDeletesProp).
 		Recursive(true).
 		BuildSpec()
+}
+
+func recordCommandSummary(summary *rtServicesUtils.OperationSummary, platformUrl string, buildConfig *build.BuildConfiguration) (err error) {
+	if !commandsummary.ShouldRecordSummary() {
+		return
+	}
+	// Get project key if exists
+	var projectKey string
+	if buildConfig != nil {
+		projectKey = buildConfig.GetProject()
+	}
+	uploadSummary, err := commandsummary.New(commandssummaries.NewUploadSummary(platformUrl, projectKey), "upload")
+	if err != nil {
+		return
+	}
+	data, err := readDetailsFromReader(summary.TransferDetailsReader)
+	if err != nil {
+		return
+	}
+	return uploadSummary.Record(data)
+}
+
+// Reads transfer details from the reader and return the content as bytes for further processing
+func readDetailsFromReader(reader *content.ContentReader) (readContent []byte, err error) {
+	if reader == nil {
+		return
+	}
+	for _, file := range reader.GetFilesPaths() {
+		// Read source file
+		sourceBytes, err := os.ReadFile(file)
+		if err != nil {
+			return nil, errorutils.CheckError(err)
+		}
+		readContent = append(readContent, sourceBytes...)
+	}
+	return
 }

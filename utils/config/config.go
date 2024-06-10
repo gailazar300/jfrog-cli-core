@@ -12,6 +12,7 @@ import (
 	artifactoryAuth "github.com/jfrog/jfrog-client-go/artifactory/auth"
 	"github.com/jfrog/jfrog-client-go/auth"
 	distributionAuth "github.com/jfrog/jfrog-client-go/distribution/auth"
+	evidenceAuth "github.com/jfrog/jfrog-client-go/evidence/auth"
 	lifecycleAuth "github.com/jfrog/jfrog-client-go/lifecycle/auth"
 	pipelinesAuth "github.com/jfrog/jfrog-client-go/pipelines/auth"
 	"github.com/jfrog/jfrog-client-go/utils"
@@ -19,6 +20,7 @@ import (
 	"github.com/jfrog/jfrog-client-go/utils/io/fileutils"
 	"github.com/jfrog/jfrog-client-go/utils/log"
 	xrayAuth "github.com/jfrog/jfrog-client-go/xray/auth"
+	xscAuth "github.com/jfrog/jfrog-client-go/xsc/auth"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -572,10 +574,12 @@ type ServerDetails struct {
 	ArtifactoryUrl                  string `json:"artifactoryUrl,omitempty"`
 	DistributionUrl                 string `json:"distributionUrl,omitempty"`
 	XrayUrl                         string `json:"xrayUrl,omitempty"`
+	XscUrl                          string `json:"xscUrl,omitempty"`
 	MissionControlUrl               string `json:"missionControlUrl,omitempty"`
 	PipelinesUrl                    string `json:"pipelinesUrl,omitempty"`
 	AccessUrl                       string `json:"accessUrl,omitempty"`
 	LifecycleUrl                    string `json:"-"`
+	EvidenceUrl                     string `json:"-"`
 	User                            string `json:"user,omitempty"`
 	Password                        string `json:"password,omitempty"`
 	SshKeyPath                      string `json:"sshKeyPath,omitempty"`
@@ -666,6 +670,10 @@ func (serverDetails *ServerDetails) GetLifecycleUrl() string {
 	return serverDetails.LifecycleUrl
 }
 
+func (serverDetails *ServerDetails) GetEvidenceUrl() string {
+	return serverDetails.EvidenceUrl
+}
+
 func (serverDetails *ServerDetails) GetUser() string {
 	return serverDetails.User
 }
@@ -708,6 +716,19 @@ func (serverDetails *ServerDetails) CreateXrayAuthConfig() (auth.ServiceDetails,
 	return serverDetails.createAuthConfig(artAuth)
 }
 
+func (serverDetails *ServerDetails) CreateXscAuthConfig() (auth.ServiceDetails, error) {
+	ascAuth := xscAuth.NewXscDetails()
+	ascAuth.SetUrl(serverDetails.convertXrayUrlToXscUrl())
+	return serverDetails.createAuthConfig(ascAuth)
+}
+
+// Xray and Xsc will always have the same platform url.
+func (serverDetails *ServerDetails) convertXrayUrlToXscUrl() string {
+	xscUrl := strings.TrimSuffix(serverDetails.XrayUrl, "/")
+	xscUrl = strings.TrimSuffix(xscUrl, "/xray")
+	return xscUrl + "/xsc/"
+}
+
 func (serverDetails *ServerDetails) CreatePipelinesAuthConfig() (auth.ServiceDetails, error) {
 	pAuth := pipelinesAuth.NewPipelinesDetails()
 	pAuth.SetUrl(serverDetails.PipelinesUrl)
@@ -724,6 +745,12 @@ func (serverDetails *ServerDetails) CreateLifecycleAuthConfig() (auth.ServiceDet
 	lcAuth := lifecycleAuth.NewLifecycleDetails()
 	lcAuth.SetUrl(serverDetails.LifecycleUrl)
 	return serverDetails.createAuthConfig(lcAuth)
+}
+
+func (serverDetails *ServerDetails) CreateEvidenceAuthConfig() (auth.ServiceDetails, error) {
+	evdAuth := evidenceAuth.NewEvidenceDetails()
+	evdAuth.SetUrl(serverDetails.EvidenceUrl)
+	return serverDetails.createAuthConfig(evdAuth)
 }
 
 func (serverDetails *ServerDetails) createAuthConfig(details auth.ServiceDetails) (auth.ServiceDetails, error) {
